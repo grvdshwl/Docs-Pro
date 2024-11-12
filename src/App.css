@@ -1,0 +1,42 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+span.tooltip {
+  position: relative;
+  color: #eee;
+  font-family: helvetica, sans-serif;
+  text-decoration: none;
+  top: 250px;
+  text-shadow: 1px 1px 1px black;
+}
+
+span.tooltip::before {
+  content: attr(data-tip);
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+  font-weight: bold;
+  position: absolute;
+  z-index: 999;
+  white-space: nowrap;
+  bottom: 30px; /* Positioning the tooltip */
+  background: #00a4e4;
+  color: #e0e0e0;
+  padding: 7px;
+  line-height: 24px;
+  height: 24px;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.4s ease-out, bottom 0.2s ease-out;
+  text-shadow: none;
+}
+
+span.tooltip:hover::before {
+  opacity: 1;
+  bottom: 35px; /* Adjust position on hover */
+}

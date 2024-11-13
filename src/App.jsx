@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const { notes } = useNotes();
+
   return (
     <AppContainer>
       <ToastContainer />

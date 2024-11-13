@@ -13,3 +13,6 @@ export const mockNotes = [
       "Workout Routine: Cardio in the morning, Strength training in the evening.",
   },
 ];
+
+export const mockText =
+  "Artificial Intelligence (AI) refers to the creation of computer systems capable of performing tasks that typically require human intelligence. These tasks include problem-solving, learning, understanding language, and even visual perception. AI technology ranges from narrow applications, like voice assistants, to more advanced systems like self-driving cars. With ongoing advancements, AI is transforming industries, improving efficiency, and enabling new possibilities. However, it also raises ethical concerns, including issues of privacy, fairness, and the potential impact on jobs.";

@@ -6,6 +6,14 @@ import RichTextEditableParagraph from "./RichTextEditableParagraph";
 import RichTextEditorToolBar from "./RichTextEditorToolBar";
 import RichTextEditorPasswordModal from "./RichTextEditorPasswordModal";
 import { Tooltip } from "react-tooltip";
+import { useGenerateInfo } from "../../hooks/useGenerateInfo";
+import {
+  escapeRegExp,
+  isEmptyObject,
+  removeSpecialCharactersFromObject,
+  replaceEncodedSpaces,
+  showToast,
+} from "../../utils/helper";
 
 const RichTextEditor = () => {
   const {
@@ -16,6 +24,7 @@ const RichTextEditor = () => {
     updateNotePassword,
   } = useNotes();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { generateInfo } = useGenerateInfo();
 
   if (!currentNote) return null;
 
@@ -38,32 +47,57 @@ const RichTextEditor = () => {
   const handleEncryptNote = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const highlightWords = () => {
-    if (!currentNote || currentNote.isHighlighted) {
-      updateNoteHighlighted(currentNote.id, "", false);
-      return;
-    }
+  const highlightWords = async () => {
+    try {
+      if (!currentNote || currentNote.isHighlighted) {
+        updateNoteHighlighted(currentNote.id, "", false);
+        return;
+      }
 
-    const editor = document.getElementById("editor-content");
-    if (editor) {
-      let content = editor.innerText.trim();
-      const words = content.split(" ");
-      let updatedContent = content;
+      const editor = document.getElementById("editor-content");
+      if (editor) {
+        let content = editor.innerText.trim();
+        let updatedContent = content;
 
-      words.forEach((word, index) => {
-        if (index % 2 === 0) {
-          const wordSpan = `<span data-tooltip-place="top"
-             data-tooltip-id="my-tooltip" data-tooltip-content="${word}" 
-             style="background-color: yellow; transition: background-color 0.3s; cursor: pointer;" 
-             onmouseover="this.style.backgroundColor='orange';" 
-             onmouseout="this.style.backgroundColor='yellow'">
-              ${word}
-            </span>`;
-          updatedContent = updatedContent.replace(word, wordSpan);
+        const result = await generateInfo(content);
+        const finalResult = removeSpecialCharactersFromObject(result);
+        if (isEmptyObject(finalResult)) {
+          showToast("No result to highlight", "warning");
+          return;
         }
-      });
 
-      updateNoteHighlighted(currentNote.id, updatedContent, true);
+        const wrappedWords = new Set();
+
+        Object.keys(finalResult).forEach((key) => {
+          const wordRegex = new RegExp(`\\b${escapeRegExp(key)}\\b`, "gi");
+          const definition = finalResult[key];
+
+          updatedContent = updatedContent.replace(wordRegex, (match) => {
+            const lowerCaseMatch = match.toLowerCase();
+            if (!wrappedWords.has(lowerCaseMatch)) {
+              wrappedWords.add(lowerCaseMatch);
+              const encodedDefinition = encodeURIComponent(definition);
+              return `<span data-tooltip-place='top'
+                            data-tooltip-id='my-tooltip'
+                            data-tooltip-content='${encodedDefinition}'
+                            style='background-color: yellow; transition: background-color 0.3s; cursor: pointer;'
+                            onmouseover='this.style.backgroundColor="orange";'
+                            onmouseout='this.style.backgroundColor="yellow";'>
+                      ${match}
+                    </span>`;
+            }
+            return match;
+          });
+        });
+
+        updateNoteHighlighted(
+          currentNote.id,
+          replaceEncodedSpaces(updatedContent),
+          true
+        );
+      }
+    } catch (error) {
+      console.error("Error highlighting words:", error);
     }
   };
 
